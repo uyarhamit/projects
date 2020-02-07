@@ -1,0 +1,142 @@
+﻿@using MODEL;
+@{ 
+    if (Session["UserInfo"] == null)
+    {
+        Session["loginError"] = "Yeniden giriş yapın!";
+        Response.Redirect("/Login/LogOut");
+    }
+    if (Session["UserLevel"].ToString() != "2")
+    {
+        Response.Redirect("/Home/Index");
+    }
+    var db = new FaturaEntities();
+}
+<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="p-5">
+                        <div class="form-group m-b-0">
+                            <div class="col-sm-12 text-center text-success">
+                                <span id="spnSuccess"></span>
+                            </div> <div class="col-sm-12 text-center text-danger">
+                                <span id="spnDanger"></span>
+                            </div>
+                        </div>
+                        <form class="user" id="form" @*action="/Invoice/InvoiceAdd" method="post" enctype="multipart/form-data"*@>
+                            <input type="hidden" id="userId" name="userId" value="@Session["UserId"]" />
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="fileUpload" name="fileUpload">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="upload" class="btn btn-primary btn-user btn-block">
+                                Faturayı Ekle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+<div id="dvExcel"></div>
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/Scripts/xlsFile.js"></script>
+<script src="~/Scripts/jsZip.js"></script>
+<script type="text/javascript">
+    var arrayOfValues = new Array();
+    var excelJson = [];
+    var invoiceNo, invoiceDate, taxNumber, title, total, uniteType,branch;
+    $(document).on("click", "#upload", function () {
+        //Reference the FileUpload element.
+        var fileUpload = $("#fileUpload")[0];
+        //Validate whether File is valid Excel file.
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.xls|.xlsx)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+
+                //For Browsers other than IE.
+                if (reader.readAsBinaryString) {
+                    reader.onload = function (e) {
+                        ProcessExcel(e.target.result);
+                    };
+                    reader.readAsBinaryString(fileUpload.files[0]);
+                } else {
+                    //For IE Browser.
+                    reader.onload = function (e) {
+                        var data = "";
+                        var bytes = new Uint8Array(e.target.result);
+                        for (var i = 0; i < bytes.byteLength; i++) {
+                            data += String.fromCharCode(bytes[i]);
+                        }
+                        ProcessExcel(data);
+                    };
+                    reader.readAsArrayBuffer(fileUpload.files[0]);
+                }
+            } else {
+                alert("Yükleme sırasında bir hata oluştu.");
+            }
+        } else {
+            alert("Lütfen geçerli excel dosyası yükleyiniz.");
+        }
+    });
+    function ProcessExcel(data) {
+        //Read the Excel File data.
+        var workbook = XLSX.read(data, {
+            type: 'binary'
+        });
+
+        //Fetch the name of First Sheet.
+        var firstSheet = workbook.SheetNames[0];
+        //Read all rows from First Sheet into an JSON array.
+        var excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet]);
+        //Add the data rows from Excel file.
+        for (var i = 0; i < excelRows.length; i++) {
+            invoiceNo = excelRows[i]["Fatura No"];
+            invoiceDate = excelRows[i]["Fatura Tarihi"];
+            taxNumber = excelRows[i]["VKN/TCKN"];
+            title = excelRows[i]["Unvan"];
+            total = excelRows[i]["Tutar"];
+            uniteType = excelRows[i]["Döviz Cinsi"];
+            branch = excelRows[i]["Şube"];
+            arrayOfValues.push(invoiceNo);
+            arrayOfValues.push(invoiceDate);
+            arrayOfValues.push(taxNumber);
+            arrayOfValues.push(title);
+            arrayOfValues.push(total);
+            arrayOfValues.push(uniteType);
+            arrayOfValues.push(branch);
+        }
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Invoice_Api/AddWExcel",
+             data: JSON.stringify({
+                 invoiceDetail: arrayOfValues,
+                 userId: $("#userId").val()
+               }),
+                dataType: "json",
+                success: function (yanit) {
+                    if (yanit.status == 1) {
+                        $('#spnSuccess').html(yanit.statusText);
+                        $("#fileUpload").val('');
+                    }
+                    else {
+                        $('#spnDanger').html(yanit.statusText);
+                    }
+                },
+                error: function (result) {
+                    $('#spnDanger').html(result.statusText);
+                }
+            });
+
+    };
+</script>

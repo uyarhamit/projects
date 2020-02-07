@@ -1,0 +1,384 @@
+﻿@using MODEL;
+@{
+    var db = new FaturaEntities();
+}
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="p-5">
+                        <div class="form-group m-b-0">
+                            <div class="col-sm-12 text-center text-success">
+                                <span id="spnSuccess"></span>
+                            </div> <div class="col-sm-12 text-center text-danger">
+                                <span id="spnDanger"></span>
+                            </div>
+                        </div>
+                        <form class="user">
+                            <input type="hidden" id="id" name="id" />
+                            <input type="hidden" id="userId" name="userId" value="@Session["UserId"]" />
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="company">Firma Adı</label>
+                                    <input type="text" class="form-control form-control-user" id="company" name="company" placeholder="Firma Adı">
+                                </div>
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="invoiceNumber">Fatura No</label>
+                                    <input type="text" class="form-control form-control-user" id="invoiceNumber" name="invoiceNumber" placeholder="Fatura Tutarı">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="invoiceDate">Fatura Tarihi</label>
+                                    <input type="date" class="form-control form-control-user" id="invoiceDate" name="invoiceDate" value="dd-MM-yyyy">
+                                </div>
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="total">Tutar</label>
+                                    <input type="text" class="form-control form-control-user" id="total" name="total" placeholder="Fatura Tutarı">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="total">Vergi Numarası</label>
+                                    <input type="number" class="form-control form-control-user" id="taxNumber" name="taxNumber" placeholder="Vergi Numarası" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="total">Şube Adı</label>
+                                    <select id="branch" name="branch" class="form-control custom-select"></select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="userCheck">Kullanıcı Ata</label>
+                                    <input type="radio" name="userCheck" id="userCheck" value="1" checked />
+                                    <label for="departmentCheck">Departman Ata</label>
+                                    <input type="radio" name="userCheck" id="departmentCheck" value="0" />
+                                    <div class="" id="usersDiv">
+                                        <select class="js-example-basic-multiple" name="users[]" id="users" multiple="multiple" style="width:100% !important;"></select>
+                                    </div>
+                                    <div class="" id="departmentDiv" hidden>
+                                        <select class="js-example-basic-multiple" name="departments[]" id="departments" multiple="multiple" style="width:100% !important;"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="document" name="document" class="file-upload" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <!-- Trigger the modal with a button -->
+                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">Faturayı Götüntüle</button>
+                                    <!-- Modal -->
+                                    <div id="myModal" class="modal fade" role="dialog">
+                                        <div class="modal-dialog modal-lg">
+
+                                            <!-- Modal content-->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                </div>
+                                                <div class="modal-body">
+
+                                                    <embed frameborder="0" width="100%" height="450px" id="image">
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Kapat</button>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="UpdateInvoice();" class="btn btn-primary btn-user btn-block">
+                                Fatura Güncelle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/js/select2.full.min.js"></script>
+<script>
+
+    var fileway;
+    function formatDate(date) {
+        var d = new Date(date);
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        var output =  d.getFullYear() + '-' + (month < 10 ? '0' : '') + month + '-'+ (day < 10 ? '0' : '') + day;
+        return output;
+    }
+
+    function formatTime(time) {
+        var h = time.split(":")[0];
+        var m = time.split(":")[1];
+        var output = h + ':' + m;
+        return output;
+    }
+    
+    function SubeList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Branch_Api/BranchList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#branch").empty();
+                $.each(yanit, function () {
+                    $("#branch").append($("<option></option>").val(this.name).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function UpdateInvoice() {
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Invoice_Api/Update",
+            data: JSON.stringify({
+                id: $("#id").val(),
+                invoiceCompany: $("#company").val(),
+                invoiceDate: $("#invoiceDate").val(),
+                invoiceNumber: $("#invoiceNumber").val(),
+                total: $("#total").val(),
+                users: $("#users").val(),
+                departmans: $("#departments").val(),
+                userId: $("#userId").val(),
+                document: fileway,
+                branch: $("#branch").val(),
+                taxNumber: $("#taxNumber").val()
+            }),
+            dataType: "json",
+            success: function (yanit) {
+                if (yanit.status == 1) {
+                    uploadFile();
+                    date = new Date();
+                    current = formatDate(date);
+                    $('#spnSuccess').html(yanit.statusText);
+                    $("#id").val(yanit.recordId);
+                    $("#image").removeAttr("src");
+                    Detail();
+                }
+            },
+            error: function (result) {
+                $('#spnDanger').html(result.statusText);
+            }
+        });
+    }
+
+    function uploadFile() {
+
+        var uploadInput = $('#document');
+
+        if (uploadInput[0].files[0] != undefined) {
+            var formData = new FormData();
+            formData.append('UploadedFiles', uploadInput[0].files[0]);
+
+            $.ajax({
+                url: '/Api/Upload_Api/UploadFiles',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    $('#document').val('');
+                },
+                xhr: function () {
+                    var xhr = new XMLHttpRequest();
+                    xhr.upload.addEventListener('progress', function (e) {
+
+                        if (e.lengthComputable) {
+                            var uploadpercent = e.loaded / e.total;
+                            uploadpercent = (uploadpercent * 100);
+                            $('.progress-bar').text(uploadpercent + '%');
+                            $('.progress-bar').width(uploadpercent + '%');
+
+                            if (uploadpercent == 100) {
+                                $('.progress-bar').text('Completed');
+                            }
+                        }
+                    }, false);
+
+                    return xhr;
+                }
+            })
+        }
+    }
+
+    function Detail() {
+            $.ajax({
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/Invoice_Api/Detail/",
+                data:"id=" + $("#id").val(),
+                dataType: "json",
+                cache: false,
+                async: false,
+                success: function (yanit) {
+                    if (yanit != '') {
+                        $("#company").val(yanit.invoiceCompany);
+                        $("#invoiceNumber").val(yanit.invoiceNumber);
+                        date = formatDate(yanit.invoiceDate);
+                        $("#invoiceDate").val(date);
+                        $("#total").val(yanit.totalS);
+                        $("#branch").val(yanit.branch);
+                        $("#taxNumber").val(yanit.taxNumber);
+                        fileway = yanit.document;
+                        UserList(yanit.id);
+                        if (yanit.document != '') {
+                            $("#image").attr('src', "/UploadedFiles/" + yanit.document);
+                        }
+                    } else {
+                        $('#bResult').html("Record detail couldn't load.");
+                    }
+                },
+                error: function (Result) {
+                        $('#bResult').html("Record detail couldn't load.");
+                }
+            });
+    }
+
+    function DepartmentList(id) {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Departman_Api/DutyUser",
+            data:"id="+id,
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                if (yanit != '') {
+                    $("#usersDiv").attr("hidden", "hidden");
+                    $("#departmentDiv").removeAttr("hidden");
+                    $("#departmentCheck").attr("checked", "checked"); 
+                    $("#departments").empty();
+                    $.each(yanit, function () {
+                        $("#departments").append($("<option selected></option>").val(this.id).html(this.departmenName));
+                    });
+                }
+                else {
+                    UserListt();
+                }
+            },
+            error: function (Result) {
+                $('#bResult').html("Departmanlar yüklenemedi.");
+            }
+        });
+    }
+
+    function UserList(id) {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/User_Api/DutyUser",
+            data: "id=" + id,
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                if (yanit != '') {
+                    $("#users").empty();
+                    $.each(yanit, function () {
+                        $("#users").append($("<option selected></option>").val(this.id).html(this.name));
+                    });
+                }
+                else {
+                    DepartmentList(id);
+                }
+               
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function UserListt() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/User_Api/UserList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#users").empty();
+                $.each(yanit, function () {
+                    $("#users").append($("<option></option>").val(this.id).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function DepartmentListt() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Departman_Api/DepartmanList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#departments").empty();
+                $.each(yanit, function () {
+                    $("#departments").append($("<option></option>").val(this.id).html(this.departmenName));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Departmanlar yüklenemedi.");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('.js-example-basic-multiple').select2();
+        $("#id").val(@ViewBag.invoiceId);
+        SubeList();
+        Detail(); 
+
+        $('input[type=radio][name=userCheck]').change(function () {
+            if (this.value == '0') {
+                DepartmentListt();
+                UserListt();
+                $("#usersDiv").attr("hidden", "hidden");
+                $("#departmentDiv").removeAttr("hidden");
+            }
+            else if (this.value == '1') {
+                UserListt();
+                DepartmentListt();
+                $("#departmentDiv").attr("hidden", "hidden");
+                $("#usersDiv").removeAttr("hidden");
+            }
+        });
+
+        $("#document").change(function (e) {
+            fileway = e.target.files[0].name;
+
+        });
+    });
+
+</script>
+
+
+

@@ -1,0 +1,128 @@
+﻿
+@{
+
+    if (Session["UserInfo"] == null)
+    {
+        Session["loginError"] = "Yeniden giriş yapın!";
+        Response.Redirect("/Login/LogOut");
+    }
+    if (Session["UserLevel"].ToString() != "2")
+    {
+        Response.Redirect("/Home/Index");
+    }
+}
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="m-0 font-weight-bold text-primary">KULLANICI LİSTESİ</h6>
+                </div>
+
+                <div class="col-md-6">
+                    <a href="/User/Add" class="btn btn-primary btn-sm btn-icon-split" style="float:right">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-arrow-right"></i>
+                        </span>
+                        <span class="text">Kullanıcı Ekle</span>
+                    </a>
+
+                </div>
+            </div>
+        <div class="form-group m-b-0">
+            <div class="col-sm-12 text-center text-success">
+                <span id="spnSuccess"></span>
+            </div> <div class="col-sm-12 text-center text-danger">
+                <span id="spnDanger"></span>
+            </div>
+        </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-Title">
+                        <tr>
+                            <th>İSİM</th>
+                            <th>DEPARTMAN</th>
+                            <th>ŞUBE</th>
+                            <th>KULLANICI TİPİ</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tfoot class="thead-Title">
+                        <tr>
+                            <th>İSİM</th>
+                            <th>DEPARTMAN</th>
+                            <th>ŞUBE</th>
+                            <th>KULLANICI TİPİ</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        @{
+                            DateTime date;
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td style="color:black;"> @item.name</td>
+                                <td style="color:black;"> @item.departman</td>
+                                <td style="color:black;"> @item.branch</td>
+                                <td style="color:black;"> @item.userType</td>
+
+                                <td width="7%">
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            İşlemler
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <a class="dropdown-item" style="cursor:pointer;" onclick="LoadingAc(); getContents('Pages', 'UserDetail',@item.id); LoadingKapat();">Detay</a>
+                                            <a class="dropdown-item" style="cursor:pointer;" onclick="deleteItem(@item.id);">Sil</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/Scripts/system.js"></script>
+<script>
+
+    function deleteItem(id) {
+        var checkstr = confirm('Kullanıcıyı silmek istediğinizden emin misiniz?');
+        if (checkstr == true) {
+            $.ajax({
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/User_Api/Delete/" + id,
+                dataType: "json",
+                async: false,
+                success: function (yanit) {
+                    if (yanit.status != "1") {
+                        $('#spnDanger').html(yanit.statusText);
+                    } else {
+                        window.location.reload();
+                        $('#spnSuccess').html(yanit.statusText);
+                    }
+                },
+                error: function (Result) {
+                    $('#spnDanger').html("Silme esnasında bir hata oluştu.");
+                }
+            });
+        } else {
+            return false;
+        }
+    }
+
+
+</script>
+

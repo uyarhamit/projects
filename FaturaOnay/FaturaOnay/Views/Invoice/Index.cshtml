@@ -1,0 +1,510 @@
+﻿
+@{
+
+    if (Session["UserInfo"] == null)
+    {
+        Session["loginError"] = "Yeniden giriş yapın!";
+        Response.Redirect("/Login/LogOut");
+    }
+
+    if (Session["UserLevel"].ToString() != "2")
+    {
+        Response.Redirect("/Home/Index");
+    }
+}
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <form action="/Invoice/Index">
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <label for="startDate">Başlangıç Tarihi</label>
+                                <input type="date" class="form-control form-control-user" id="startDate" name="startDate" required>
+                            </div>
+                            <div class="col-sm-4">
+                                <label for="endDate">Bitiş Tarihi</label>
+                                <input type="date" class="form-control form-control-user" id="endDate" name="endDate" required>
+                            </div>
+                            <div class="col-sm-4">
+                                <label for="branch">Şubeler</label>
+                                <select id="branch" name="branch" class="form-control custom-select"></select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-success btn-sm btn-block">Filtrele</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <label for="userCheck">Kullanıcı Ata</label>
+                            <input type="radio" name="userCheck" id="userCheck" value="1" checked />
+                            <label for="departmentCheck">Departman Ata</label>
+                            <input type="radio" name="userCheck" id="departmentCheck" value="0" />
+                            <div class="" id="usersDiv">
+                                <select id="users" name="users" class="form-control custom-select"></select>
+                            </div>
+                            <div class="" id="departmentDiv" hidden>
+                                <select id="departments" name="departments" class="form-control custom-select"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn btn-success btn-sm btn-icon-split disabled" onclick="assignInvoices();" id="assignInvoice" style="float:left; cursor:pointer; color:white;">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-person-booth"></i>
+                        </span>
+                        <span class="text">Seçilenleri Ata</span>
+                    </a>
+                </div>
+            </div>
+
+
+            <div class="form-group m-b-0">
+                <div class="col-sm-12 text-center text-success">
+                    <span id="spnSuccess"></span>
+                </div> <div class="col-sm-12 text-center text-danger">
+                    @if (ViewBag.Error != "")
+                    {
+                        <span id="spnDanger">@ViewBag.Error</span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-Title">
+                        <tr>
+                            <th></th>
+                            <th>FİRMA</th>
+                            <th>ŞUBE</th>
+                            <th>FATURA NO</th>
+                            <th>TUTAR</th>
+                            <th>TARİH</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tfoot class="thead-Title">
+                        <tr>
+                            <th></th>
+                            <th>FİRMA</th>
+                            <th>ŞUBE</th>
+                            <th>FATURA NO</th>
+                            <th>TUTAR</th>
+                            <th>TARİH</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                    <tbody class="t-body">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center" width="1%">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" onclick="invoiceCheck(@item.id);" id="InvoiceCheck">
+                                    </div>
+                                </td>
+                                <td style="color:black;" width="35%"> @item.invoiceCompany</td>
+                                <td style="color:black;" width="35%"> @item.branch</td>
+                                <td style="color:black;" width="20%"> @item.invoiceNumber</td>
+                                <td style="color:black; text-align:end !important;" width="15%"> @item.totalS</td>
+                                <td style="color:black;" width="15%"> @item.invoiceDate.ToString("dd/MM/yyyy") </td>
+
+                                <td width="7%">
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            İşlemler
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <a class="dropdown-item" style="cursor:pointer;" onclick="LoadingAc(); getContents('Pages', 'InvoiceDetail',@item.id); LoadingKapat();">Güncelle</a>
+                                            <a class="dropdown-item" style="cursor:pointer;" onclick="showInvoice(@item.id);">Görüntüle</a>
+                                            <a class="dropdown-item" style="cursor:pointer;" onclick="deleteItem(@item.id);">Sil</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">FATURA ONAYLAMA VE AÇIKLAMA</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input id="confirmId" name="confirmId" type="hidden" />
+                <input id="invoiceId" name="invoiceId" type="hidden" />
+                <input id="userId" name="userId" type="hidden" value="@Session["UserId"]" />
+                <input id="userName" name="userName" type="hidden" value="@Session["UserName"]" />
+                <label for="description">AÇIKLAMA</label>
+                <textarea rows="3" class="form-control form-control-user" id="description" name="description"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">VAZGEÇ</button>
+                <button id="confirm" type="button" class="btn btn-primary">ONAYLA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Message Modal -->
+<div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">UYARI</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group m-b-0">
+                    <div class="col-sm-12 text-center text-success">
+                        <span id="spnWarnSuc"></span>
+                    </div> <div class="col-sm-12 text-center text-danger">
+                        <span id="spnWarnDan"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Tamam</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<button id="showButton" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal" hidden>Faturayı Götüntüle</button>
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" id="closeInvoice" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="pdfShow">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="closeInvoice" data-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/Scripts/system.js"></script>
+<script>
+    var user = true;
+    var department = false;
+    var invoiceAdd = [];
+    function showInvoice(id) {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Invoice_Api/Documents/",
+            data: "id=" + id,
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                if (yanit != '') {
+                    $("#pdfShow").empty();
+                    $("#pdfShow").append('<embed frameborder="0" width="100%" height="450px" id="image" src="/UploadedFiles/' + yanit + '">');
+                }
+                else {
+                    $("#pdfShow").empty();
+                    $("#pdfShow").append('<embed frameborder="0" width="100%" height="450px" id="image" src="/UploadedFiles/logo.png">');
+                }
+            },
+            error: function (Result) {
+                $('#bResult').html("Dosya Gösterilemiyor.");
+            }
+        });
+        $("#showButton").trigger("click");
+    }
+
+    function invoiceCheck(id) {
+        if ($.inArray(id, invoiceAdd) != -1) {
+            invoiceAdd.splice($.inArray(id, invoiceAdd), 1);
+            if (invoiceAdd.length > 0) {
+                $("#assignInvoice").removeClass("disabled");
+            }
+            else {
+                $("#assignInvoice").addClass("disabled");
+            }
+        }
+        else {
+            invoiceAdd.push(id);
+            $("#assignInvoice").removeClass("disabled");
+        }
+    }
+
+    function assignInvoices() {
+
+        if ($("#departments").val() == '0' && $("#departments").val() == null && $("#users").val() == '0' && $("#users").val() == null) {
+            alert('Atama yapmak için departman veya kullanıcı seçiniz.');
+        }
+        else {
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/Invoice_Api/assignPersons",
+                data: JSON.stringify({
+                    invoiceIds: invoiceAdd,
+                    userId: $("#users").val(),
+                    departmanId: $("#departments").val(),
+                }),
+                dataType: "json",
+                success: function (yanit) {
+                    if (yanit.status == 1) {
+                        $("#exampleModal").modal('hide');
+                        $("#warningModal").modal('show');
+                        $('#spnWarnSuc').html(yanit.statusText);
+                    }
+                },
+                error: function (result) {
+                    $("#exampleModal").modal('hide');
+                    $("#warningModal").modal('show');
+                    $('#spnWarnDan').html(result.statusText);
+                }
+            });
+
+        }
+    }
+
+    function confirmed(userId, id) {
+        $("#confirmId").val(0);
+        $("#description").val('');
+        $("#invoiceId").val(id);
+        $("#userId").val(userId);
+        InvoiceDetail();
+        $("#exampleModal").modal('show');
+    }
+
+    function invoiceDetailAdd() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Invoice_Api/ConfirmInvoice",
+            data: JSON.stringify({
+                id: $("#confirmId").val(),
+                confirmingUserId: $("#userId").val(),
+                invoiceId: $("#invoiceId").val(),
+                userName: $("#userName").val(),
+                confirmingDetail: $("#description").val()
+            }),
+            dataType: "json",
+            success: function (yanit) {
+                if (yanit.status == 1) {
+                    $("#exampleModal").modal('hide');
+                    $("#warningModal").modal('show');
+                    $('#spnWarnSuc').html(yanit.statusText);
+                }
+            },
+            error: function (result) {
+                $("#exampleModal").modal('hide');
+                $("#warningModal").modal('show');
+                $('#spnWarnDan').html(result.statusText);
+            }
+        });
+    }
+
+    function InvoiceDetail() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Invoice_Api/DescriptionDetail/",
+            data: { invoiceId: $("#invoiceId").val(), userId: $("#userId").val() },
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                if (yanit != '') {
+                    $("#confirmId").val(yanit.id);
+                    $("#description").val(yanit.confirmingDetail);
+                } else {
+                    $('#bResult').html("Record detail couldn't load.");
+                }
+            },
+            error: function (Result) {
+                $('#bResult').html("Record detail couldn't load.");
+            }
+        });
+    }
+
+    function deleteItem(invoiceId) {
+        var checkstr = confirm('Faturayı silmek istediğinizden emin misiniz ?');
+        if (checkstr == true) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/Invoice_Api/Delete",
+                data: JSON.stringify({
+                    Id: invoiceId,
+                    userId: $("#userId").val()
+                }),
+                dataType: "json",
+                async: false,
+                success: function (yanit) {
+                    if (yanit.status != "1") {
+                        $('#spnDanger').html(yanit.statusText);
+                    } else {
+                        window.location.reload();
+                        $('#spnSuccess').html(yanit.statusText);
+                    }
+                },
+                error: function (Result) {
+                    $('#spnDanger').html("Silme esnasında bir hata oluştu.");
+                }
+            });
+        } else {
+            return false;
+        }
+    }
+
+    function StationList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Station_Api/StationList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#stationId").empty();
+                $("#stationId").append($("<option></option>").val('0').html('Choose Station'));
+                $.each(yanit, function () {
+                    $("#stationId").append($("<option></option>").val(this.id).html(this.station));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Stations couldn't load.");
+            }
+        });
+    }
+
+    function UserList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/User_Api/UserList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#users").empty();
+                $("#users").append($("<option selected disabled></option>").val('0').html('Kullanıcı Seçiniz.'));
+                $.each(yanit, function () {
+                    $("#users").append($("<option></option>").val(this.id).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function SubeList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Branch_Api/BranchList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#branch").empty();
+                $("#branch").append($("<option selected disabled></option>").val('0').html('Şube Seçin.'));
+                $.each(yanit, function () {
+                    $("#branch").append($("<option></option>").val(this.name).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function DepartmentList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Departman_Api/DepartmanList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#departments").empty();
+                $("#departments").append($("<option selected disabled></option>").val('0').html('Departman Seçiniz.'));
+                $.each(yanit, function () {
+                    $("#departments").append($("<option></option>").val(this.id).html(this.departmenName));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Departmanlar yüklenemedi.");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        UserList();
+        SubeList();
+        $('input[type=radio][name=userCheck]').change(function () {
+            if (this.value == '0') {
+                UserList();
+                DepartmentList();
+                $("#usersDiv").attr("hidden", "hidden");
+                $("#departmentDiv").removeAttr("hidden");
+            }
+            else if (this.value == '1') {
+                DepartmentList();
+                UserList();
+                $("#departmentDiv").attr("hidden", "hidden");
+                $("#usersDiv").removeAttr("hidden");
+            }
+        });
+
+
+        $('#confirm').on('click', function (evt) {
+            invoiceDetailAdd();
+        });
+
+        $('#dataTable').DataTable({
+            columnDefs: [{
+                orderable: false,
+                blurable: true,
+                targets: 0
+            }],
+            order: [[1, 'asc']]
+        });
+
+    });
+</script>
+

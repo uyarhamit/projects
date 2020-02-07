@@ -1,0 +1,186 @@
+﻿<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="p-5">
+                        <div class="form-group m-b-0">
+                            <div class="col-sm-12 text-center text-success">
+                                <span id="sResult"></span>
+                            </div> <div class="col-sm-12 text-center text-danger">
+                                <span id="bResult"></span>
+                            </div>
+                        </div>
+                        <form class="user">
+                            <div class="form-group row">
+                                <input type="hidden" id="id" name="id" />
+                                <div class="col-sm-12 mb-12 mb-sm-0">
+                                    <label for="name">Adı Soyadı</label>
+                                    <input type="text" class="form-control form-control-user" id="name" name="name" placeholder="Adı Soyadı">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="userName">Kullanıcı Adı</label>
+                                    <input type="text" class="form-control form-control-user" id="userName" name="userName" placeholder="Kullanıcı Adı">
+                                </div>
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="password">Şifre</label>
+                                    <input type="password" class="form-control form-control-user" id="password" name="password" placeholder="Şifre">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label for="departmanId">Departman</label>
+                                    <select id="departmanId" name="departmanId" class="form-control custom-select"></select>
+                                </div>
+
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label for="userType">Kullanıcı Tipi</label>
+                                    <select id="userType" name="userType" class="form-control custom-select"></select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label for="branchId">Kullanıcı Şubesi</label>
+                                    <select id="branchId" name="branchId" class="form-control custom-select"></select>
+                                </div>
+                            </div>
+                            <button type="button" onclick="Update();" class="btn btn-primary btn-user btn-block">
+                                Kullanıcı Güncelle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function Detail() {
+            $.ajax({
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/User_Api/Detail/",
+                data:"id=" + $("#id").val(),
+                dataType: "json",
+                cache: false,
+                async: false,
+                success: function (yanit) {
+                    if (yanit != '') {
+                        $("#name").val(yanit.name);
+                        $("#userName").val(yanit.userName);
+                        $("#departmanId").val(yanit.departmanId);
+                        $("#userType").val(yanit.type);
+                        $("#branchId").val(yanit.branch);
+                    } else {
+                        $('#bResult').html("Record detail couldn't load.");
+                    }
+                },
+                error: function (Result) {
+                        $('#bResult').html("Record detail couldn't load.");
+                }
+            });
+    }
+
+    function Update() {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/User_Api/Update",
+                data: JSON.stringify({
+                    id: $("#id").val(),
+                    name: $("#name").val(),
+                    userName: $("#userName").val(),
+                    departmanId: $("#departmanId").val(),
+                    type: $("#userType").val(),
+                    password: $("#password").val(),
+                    branch: $("#branchId").val()
+                }),
+                dataType: "json",
+                success: function (yanit) {
+                    if (yanit.status == "-1") {
+                        $('#bResult').html(yanit.statusText);
+                    } else {
+                        $('#sResult').html(yanit.statusText);
+                        $("#id").val(yanit.recordId);
+                    }
+                }
+            });
+    }
+
+    function UserTypeList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/User_Api/UserTypeList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#userType").empty();
+                $("#userType").append($("<option selected disabled></option>").val('0').html('Kullanıcı Tipi'));
+                $.each(yanit, function () {
+                    $("#userType").append($("<option></option>").val(this.id).html(this.type));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Stations couldn't load.");
+            }
+        });
+    }
+
+    function DepartmanList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Departman_Api/DepartmanList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#departmanId").empty();
+                $("#departmanId").append($("<option selected disabled></option>").val('0').html('Departman'));
+                $.each(yanit, function () {
+                    $("#departmanId").append($("<option></option>").val(this.id).html(this.departmenName));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Stations couldn't load.");
+            }
+        });
+    }
+
+    
+    function SubeList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Branch_Api/BranchList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#branchId").empty();
+                $("#branchId").append($("<option selected disabled></option>").val('0').html('Şubeler'));
+                $.each(yanit, function () {
+                    $("#branchId").append($("<option></option>").val(this.name).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Stations couldn't load.");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#id").val(@ViewBag.userId);
+        UserTypeList();
+        DepartmanList();
+        SubeList();
+        Detail();
+
+    });
+</script>
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="08b9ce34842b4d749c4cdbff91491358" Name="Diagram1" ZoomLevel="64">
+        <EntityTypeShape EntityType="FaturaModel.Branch" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FaturaModel.ConfirmDetails" Width="1.5" PointX="2.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FaturaModel.Departments" Width="1.5" PointX="4.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FaturaModel.Invoice_User" Width="1.5" PointX="0.75" PointY="4.75" />
+        <EntityTypeShape EntityType="FaturaModel.Invoices" Width="1.5" PointX="2.75" PointY="4.75" />
+        <EntityTypeShape EntityType="FaturaModel.Log" Width="1.5" PointX="4.75" PointY="3.75" />
+        <EntityTypeShape EntityType="FaturaModel.Menu" Width="1.5" PointX="6.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FaturaModel.User_Type" Width="1.5" PointX="6.75" PointY="4.75" />
+        <EntityTypeShape EntityType="FaturaModel.Users" Width="1.5" PointX="4.75" PointY="7.75" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -1,0 +1,16 @@
+﻿
+@{
+     if (Session["UserInfo"] == null)
+    {
+        Session["loginError"] = "Yeniden giriş yapın!";
+        Response.Redirect("/Login/LogOut");
+    }
+    int userType = Convert.ToInt32(Session["UserLevel"].ToString());
+}
+
+@*@if (userType == 2)
+{
+    <script>
+        window.location.href = "/Invoice/Index";
+    </script>
+}*@

@@ -1,0 +1,192 @@
+﻿@using MODEL;
+@{
+    if (Session["UserInfo"] == null)
+    {
+        Session["loginError"] = "Yeniden giriş yapın!";
+        Response.Redirect("/Login/LogOut");
+    }
+    if (Session["UserLevel"].ToString() != "2")
+    {
+        Response.Redirect("/Home/Index");
+    }
+    var db = new FaturaEntities();
+    string success = "";
+    string error = "";
+}
+<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="p-5">
+                        <div class="form-group m-b-0">
+                            <div class="col-sm-12 text-center text-success">
+                                @{
+                                    if (Session["dosyaS"] != null)
+                                    {
+                                        success = Session["dosyaS"].ToString();
+                                        Session.Remove("dosyaS");
+                                    }
+                                }
+                                <span id="spnSuccess">@success</span>
+                            </div> <div class="col-sm-12 text-center text-danger">
+                                @{
+                                    if (Session["dosyaB"] != null)
+                                    {
+                                        error = Session["dosyaB"].ToString();
+                                        Session.Remove("dosyaB");
+                                    }
+                                }
+                                <span id="spnDanger">@error</span>
+                            </div>
+                        </div>
+                        <form class="user" id="form" action="/Upload/UploadFiles" method="post" enctype="multipart/form-data">
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="document" name="document" class="file-upload" multiple />
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-user btn-block">
+                                Faturayı Ekle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div class="form-group m-b-0">
+                <div class="col-sm-12 text-center text-success">
+                    <span id="spnSuccess"></span>
+                </div> <div class="col-sm-12 text-center text-danger">
+                    @if (ViewBag.Error != "")
+                    {
+                        <span id="spnDanger">@ViewBag.Error</span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-Title">
+                        <tr>
+                            <th>DOSYA</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tfoot class="thead-Title">
+                        <tr>
+                            <th>DOSYA</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                    <tbody class="t-body">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td style="color:black;" width="35%"> @item.Invoice</td>
+
+                                <td class="text-center" width="2%">
+                                    <a onclick="showInvoice(@item.Id);" class="btn btn-info btn-circle btn-sm tdt-btn tdt-btn"><i class="fas fa-eye"></i></a><br />
+                                    <a href="/Upload/DeleteFile/@item.Id" class="btn btn-danger btn-circle btn-sm mg-top tdt-btn"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<button id="showButton" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal" hidden>Faturayı Götüntüle</button>
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content" style="width:120%!important;">
+            <div class="modal-header">
+                <button type="button" class="close" id="closeInvoice" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="pdfShow">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="closeInvoice" data-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    
+    function showInvoice(id) {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Invoice_Api/Documents/",
+            data: "id=" + id,
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                if (yanit != '') {
+                    $("#pdfShow").empty();
+                    $("#pdfShow").append('<embed frameborder="0" width="100%" height="450px" id="image" src="/UploadedFiles/' + yanit + '">');
+                }
+                else {
+                    $("#pdfShow").empty();
+                    $("#pdfShow").append('<embed frameborder="0" width="100%" height="450px" id="image" src="/UploadedFiles/logo.png">');
+                }
+            },
+            error: function (Result) {
+                $('#bResult').html("Dosya Gösterilemiyor.");
+            }
+        });
+        $("#showButton").trigger("click");
+    }
+    function uploadFile() {
+
+
+        var uploadInput = $("#document").get(0).files;
+
+        var formData = new FormData();
+        //formData.append('UploadedFiles', uploadInput[0].files[0]);
+        for (var i = 0; i < uploadInput.length; i++) {
+            formData.append("UploadedFiles", uploadInput[i]);
+        }
+        $.ajax({
+            url: '/Api/Upload_Api/UploadFiles',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                $('#document').val('');
+                $('#spnSuccess').html("Dosyalar başarıyla eklendi.");
+            },
+            error: function (data) {
+                $('#spnDanger').html("Dosya aktarımı sırasında hata oluştu.");
+            }
+        })
+    }
+    $(document).ready(function () {
+        $('#spnSuccess').html(yanit.statusText);
+    });
+</script>

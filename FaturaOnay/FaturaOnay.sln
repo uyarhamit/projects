@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29503.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaturaOnay", "FaturaOnay\FaturaOnay.csproj", "{F657DC46-4A8C-46DB-A334-81F71CBA04BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MODEL", "MODEL\MODEL.csproj", "{3C1A5471-E687-4652-BFDC-EF9EF72BE382}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F657DC46-4A8C-46DB-A334-81F71CBA04BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F657DC46-4A8C-46DB-A334-81F71CBA04BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F657DC46-4A8C-46DB-A334-81F71CBA04BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F657DC46-4A8C-46DB-A334-81F71CBA04BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C1A5471-E687-4652-BFDC-EF9EF72BE382}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C1A5471-E687-4652-BFDC-EF9EF72BE382}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C1A5471-E687-4652-BFDC-EF9EF72BE382}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C1A5471-E687-4652-BFDC-EF9EF72BE382}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1D34B434-846B-4E88-9782-2F3D7290436E}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,141 @@
+﻿@using FaturaOnay.Models;
+@using MODEL;
+<!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        @*<a class="sidebar-brand d-flex align-items-center justify-content-center" href="/Home">
+            <img src="~/img/sunpark.png" style="background-color:white; width:90px;" />
+        </a>*@
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center margin-bt" href="/Home">
+                <img src="~/img/sunpark.png" style="background-color:white; width:90px;" />
+            </a>
+            @*<a class="nav-link" href="/Home">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>*@
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Pages Collapse Menu -->
+        @{
+            if (Session["Menu"] != null)
+            {
+                List<Menu> menu = (List<Menu>)Session["Menu"];
+                if (menu.Count > 0)
+                {
+                    foreach (Menu item in menu.Where(x => x.PARENT_ID == 0 && x.VISIBLE == true).OrderBy(y => y.ORDERNUM))
+                    {
+                        var subMenu = menu.Where(x => x.PARENT_ID == item.ID && x.VISIBLE == true).ToList();
+
+                        if (subMenu.Count > 0)
+                        {
+                            string icon = "fa-table";
+                            if (item.ICON != "" && item.ICON != null)
+                            {
+                                icon = item.ICON.ToString();
+                            }
+
+                            if (Session["UserLevel"].ToString() == "2")
+                            {
+                                <li class="nav-item" style="cursor: pointer;">
+                                    <a class="nav-link collapsed" href="/@item.TARGET/Index" data-toggle="collapse" data-target="#collapsePages_@item.ID" aria-expanded="false" aria-controls="collapsePages">
+                                        <i class="fas fa@{@icon} "></i>
+                                        <span>@item.TITLE</span>
+                                    </a>
+                                    <div id="collapsePages_@item.ID" class="collapse in" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                                        <div class="bg-white py-2 collapse-inner rounded">
+                                            @foreach (Menu sub in subMenu)
+                                            {
+                                                <a class="collapse-item" href="@sub.TARGET">@sub.TITLE</a>
+                                                if (sub.ID != 5 && sub.ID != 6 && sub.ID != 8 && sub.ID != 9)
+                                                {
+                                                    <a class="collapse-item" href="@sub.TARGET">@sub.TITLE</a>
+
+                                                }
+
+                                            }
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                            else
+                            {
+
+                                if (item.ID != 4 && item.ID != 5 && item.ID != 6 && item.ID != 8 && item.ID != 9)
+                                {
+                                    <li class="nav-item" style="cursor: pointer;">
+                                        <a class="nav-link collapsed" href="/@item.TARGET/Index" data-toggle="collapse" data-target="#collapsePages_@item.ID" aria-expanded="false" aria-controls="collapsePages">
+                                            <i class="fas fa@{@icon} "></i>
+                                            <span>@item.TITLE</span>
+                                        </a>
+                                        <div id="collapsePages_@item.ID" class="collapse in" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                                            <div class="bg-white py-2 collapse-inner rounded">
+                                                @foreach (Menu sub in subMenu)
+                                                {
+                                                    if (sub.ID != 5 && sub.ID != 6 && sub.ID != 8 && sub.ID != 9)
+                                                    {
+                                                        <a class="collapse-item" href="@sub.TARGET">@sub.TITLE</a>
+
+                                                    }
+
+                                                }
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            }
+                        }
+                        else
+                        {
+
+                            if (Session["UserLevel"].ToString() == "2")
+                            {
+                                <!-- Nav Item - Charts -->
+                                <li class="nav-item">
+                                    <a class="nav-link" href="@item.TARGET">
+                                        <i class="fas fa-fw fa@{@item.ICON} "></i>
+                                        <span>@item.TITLE</span>
+                                    </a>
+                                </li>
+        }
+        else
+        {
+
+            if (item.ID != 4 && item.ID != 11 && item.ID != 12)
+            {
+                                    <!-- Nav Item - Charts -->
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="@item.TARGET">
+                                            <i class="fas fa-fw fa@{@item.ICON} "></i>
+                                            <span>@item.TITLE</span>
+                                        </a>
+                                    </li>
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        <!-- Divider -->
+        <hr class="sidebar-divider d-none d-md-block">
+
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+    </ul>
+<!-- End of Sidebar -->

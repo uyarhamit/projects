@@ -1,0 +1,306 @@
+﻿@using MODEL;
+@{
+    if (Session["UserLevel"].ToString() != "2")
+    {
+        Response.Redirect("/Home/Index");
+    }
+    var db = new FaturaEntities();
+}
+<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <!-- Nested Row within Card Body -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="p-5">
+                        <div class="form-group m-b-0">
+                            <div class="col-sm-12 text-center text-success">
+                                <span id="spnSuccess"></span>
+                            </div> <div class="col-sm-12 text-center text-danger">
+                                <span id="spnDanger"></span>
+                            </div>
+                        </div>
+                        <form class="user" id="form">
+                            <div class="form-group row">
+                                <input type="hidden" id="userId" name="userId" value="@Session["UserId"]" />
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="company">Firma Adı</label>
+                                    <input type="text" class="form-control form-control-user" id="company" name="company" placeholder="Firma Adı" required>
+                                </div>
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="invoiceNumber">Fatura No</label>
+                                    <input type="text" class="form-control form-control-user" id="invoiceNumber" name="invoiceNumber" placeholder="Fatura No" required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="invoiceDate">Fatura Tarihi</label>
+                                    <input type="date" class="form-control form-control-user" id="invoiceDate" name="invoiceDate" required>
+                                </div>
+                                <div class="col-sm-6 mb-6 mb-sm-0">
+                                    <label for="total">Tutar</label>
+                                    <input type="number" class="form-control form-control-user" id="total" name="total" placeholder="Fatura Tutarı" required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="total">Vergi Numarası</label>
+                                    <input type="number" class="form-control form-control-user" id="taxNumber" name="taxNumber" placeholder="Vergi Numarası" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="branch">Şube Adı</label>
+                                    <select id="branch" name="branch" class="form-control custom-select"></select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="userCheck">Kullanıcı Ata</label>
+                                    <input type="radio" name="userCheck" id="userCheck" value="1" checked />
+                                    <label for="departmentCheck">Departman Ata</label>
+                                    <input type="radio" name="userCheck" id="departmentCheck" value="0" />
+                                    <div class="" id="usersDiv">
+                                        <select class="js-example-basic-multiple" name="users[]" id="users" multiple="multiple" style="width:100% !important;"></select>
+                                    </div>
+                                    <div class="" id="departmentDiv" hidden>
+                                        <select class="js-example-basic-multiple" name="departments[]" id="departments" multiple="multiple" style="width:100% !important;"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="document" name="document" class="file-upload" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="AddInvoice();" class="btn btn-primary btn-user btn-block">
+                                Faturayı Ekle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <button id="openModal" type="button" class="btn btn-primary" data-toggle="modal" data-target="#warningModal" hidden></button>
+            <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="padding-left:unset !important;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong> <h5 class="modal-title" id="exampleModalLabel">UYARI</h5></strong>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Lütfen bütün alanları doldurun ve tekrar deneyin.
+                        </div>
+                        <div class="modal-footer">
+                            <button id="cancel" type="button" class="btn btn-primary" data-dismiss="modal">Tamam</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script>
+    var fileway;
+    function formatDate(date) {
+        var d = new Date(date);
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        var output = d.getFullYear() + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
+        return output;
+    }
+
+    function formatTime(time) {
+        var h = time.split(":")[0];
+        var m = time.split(":")[1];
+        var output = h + ':' + m;
+        return output;
+    }
+
+    function AddInvoice() {
+        if ($("#users").val() != '' || $("#departments").val() != '') {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Api/Invoice_Api/AddNew",
+                data: JSON.stringify({
+                    invoiceCompany: $("#company").val(),
+                    invoiceDate: $("#invoiceDate").val(),
+                    invoiceNumber: $("#invoiceNumber").val(),
+                    total: $("#total").val(),
+                    users: $("#users").val(),
+                    departmans: $("#departments").val(),
+                    userId: $("#userId").val(),
+                    document: fileway,
+                    branch: $("#branch").val(),
+                    taxNumber: $("#taxNumber").val()
+                }),
+                dataType: "json",
+                success: function (yanit) {
+                    if (yanit.status == 1) {
+                        uploadFile();
+                        $('#spnSuccess').html(yanit.statusText);
+                        $("#company").val('');
+                        $("#invoiceNumber").val('');
+                        $("#invoiceDate").val(current);
+                        $("#total").val('');
+                        $("#branch").val('');
+                        $("#taxNumber").val('');
+                        UserList();
+                        DepartmentList();
+
+                    }
+                },
+                error: function (result) {
+                    $('#spnDanger').html(result.statusText);
+                }
+            });
+        }
+        else {
+            $("#openModal").trigger("click");
+
+        }
+
+    }
+    
+    function SubeList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Branch_Api/BranchList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#branch").empty();
+                $.each(yanit, function () {
+                    $("#branch").append($("<option></option>").val(this.name).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function UserList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/User_Api/UserList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#users").empty();
+                $.each(yanit, function () {
+                    $("#users").append($("<option></option>").val(this.id).html(this.name));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Kullanıcılar yüklenemedi.");
+            }
+        });
+    }
+
+    function DepartmentList() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "/Api/Departman_Api/DepartmanList",
+            dataType: "json",
+            cache: false,
+            async: false,
+            success: function (yanit) {
+                $("#departments").empty();
+                $.each(yanit, function () {
+                    $("#departments").append($("<option></option>").val(this.id).html(this.departmenName));
+                });
+            },
+            error: function (Result) {
+                $('#bResult').html("Departmanlar yüklenemedi.");
+            }
+        });
+    }
+
+    function uploadFile() {
+
+        var uploadInput = $('#document');
+
+        if (uploadInput[0].files[0] != undefined) {
+            var formData = new FormData();
+            formData.append('UploadedFiles', uploadInput[0].files[0]);
+
+            $.ajax({
+                url: '/Api/Upload_Api/UploadFiles',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    $('#document').val('');
+                },
+                xhr: function () {
+                    var xhr = new XMLHttpRequest();
+                    xhr.upload.addEventListener('progress', function (e) {
+
+                        if (e.lengthComputable) {
+                            var uploadpercent = e.loaded / e.total;
+                            uploadpercent = (uploadpercent * 100);
+                            $('.progress-bar').text(uploadpercent + '%');
+                            $('.progress-bar').width(uploadpercent + '%');
+
+                            if (uploadpercent == 100) {
+                                $('.progress-bar').text('Completed');
+                            }
+                        }
+                    }, false);
+
+                    return xhr;
+                }
+            })
+        }
+    }
+
+    $(document).ready(function () {
+        $('.js-example-basic-multiple').select2();
+        date = new Date();
+        current = formatDate(date);
+        $("#invoiceDate").val(current);
+        UserList();
+        DepartmentList();
+        SubeList();
+
+        $('input[type=radio][name=userCheck]').change(function () {
+            if (this.value == '0') {
+                DepartmentList();
+                UserList();
+                $("#usersDiv").attr("hidden", "hidden");
+                $("#departmentDiv").removeAttr("hidden");
+            }
+            else if (this.value == '1') {
+                UserList();
+                DepartmentList();
+                $("#departmentDiv").attr("hidden", "hidden");
+                $("#usersDiv").removeAttr("hidden");
+            }
+        });
+
+        $("#document").change(function (e) {
+            fileway = e.target.files[0].name;
+        });
+        //$("#cancel").click(function () {
+        //    $('#warningModal').removeClass("show");
+        //    $('#warningModal').css("display","none");
+        //});
+    });
+
+</script>
+
+
+
